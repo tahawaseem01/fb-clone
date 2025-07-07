@@ -1,0 +1,72 @@
+/* Layout wrappers */
+.main-wrapper {
+  @apply bg-gray-100 min-h-screen;
+}
+
+.main-content-centered {
+  @apply flex items-center justify-center mt-6;
+}
+
+/* Navbar */
+.navbar {
+  @apply bg-blue-600 p-4 shadow-md text-white;
+}
+
+.navbar-container {
+  @apply container mx-auto flex justify-between items-center;
+}
+
+.navbar-brand {
+  @apply text-xl font-bold;
+}
+
+.navbar-link {
+  @apply hover:underline;
+}
+
+/* Card styles */
+.card {
+  @apply bg-white p-6 rounded-xl shadow-md w-full max-w-2xl;
+}
+
+.card-header {
+  @apply text-2xl font-bold mb-4;
+}
+
+.card-section {
+  @apply mb-4;
+}
+
+.card-label {
+  @apply block font-semibold mb-1;
+}
+
+.card-input {
+  @apply w-full px-4 py-2 border rounded;
+}
+
+.card-button {
+  @apply mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700;
+}
+
+/* Post item */
+.post {
+  @apply bg-white p-4 rounded shadow mb-4;
+}
+
+.post-author {
+  @apply font-semibold;
+}
+
+.post-content {
+  @apply mt-2;
+}
+
+/* Profile image container */
+.profile-img-container {
+  @apply flex justify-center mb-4;
+}
+
+.profile-img {
+  @apply w-32 h-32 rounded-full object-cover border-4 border-blue-600;
+}

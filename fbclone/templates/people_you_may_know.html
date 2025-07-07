@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}People You May Know{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto p-6 bg-white rounded shadow">
+  <h2 class="text-2xl font-semibold text-gray-800 mb-6">People You May Know</h2>
+
+  {% for user in suggestions %}
+  <div class="flex items-center justify-between p-4 border-b">
+    <div class="flex items-center space-x-4">
+      <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}{% static 'profile_pics/default.jpg' %}{% endif %}" class="w-12 h-12 rounded-full object-cover">
+      <div>
+        <p class="font-medium text-gray-900">{{ user.username }}</p>
+        <p class="text-sm text-gray-500">{{ user.email }}</p>
+      </div>
+    </div>
+    <form method="post" action="{% url 'send_friend_request' user.id %}">
+      {% csrf_token %}
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded">
+        Add Friend
+      </button>
+    </form>
+  </div>
+  {% empty %}
+    <p class="text-center text-gray-500">No suggestions available.</p>
+  {% endfor %}
+</div>
+
+{% endblock %}

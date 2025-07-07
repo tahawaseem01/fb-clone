@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+  #chat-box {
+    height: 400px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 1rem;
+  }
+  .chat-message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .chat-message img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  .chat-message .message-body {
+    background: #f1f0f0;
+    border-radius: 12px;
+    padding: 10px;
+    max-width: 70%;
+  }
+  .chat-message .sender {
+    font-weight: bold;
+    margin-bottom: 4px;
+  }
+</style>
+
+<div id="chat-box">
+  <ul id="chat-messages">
+    {% for msg in messages %}
+      <li class="chat-message">
+        {% if msg.sender.profile.profile_pic %}
+          <img src="{{ msg.sender.profile.profile_pic.url }}" alt="{{ msg.sender.username }}">
+        {% else %}
+          <img src="{% static 'images/default-avatar.png' %}" alt="default">
+        {% endif %}
+        <div class="message-body">
+          <div class="sender">{{ msg.sender.username }}</div>
+          <div>{{ msg.content }}</div>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
+
+<form id="chat-form" class="flex mt-4">
+  {% csrf_token %}
+  <input type="text" id="message-input" class="flex-grow border border-gray-300 rounded-l px-4 py-2" placeholder="Type a message..." autocomplete="off">
+  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-r">Send</button>
+</form>
+
+
+<script>
+  const recipientId = "{{ recipient.id }}";
+  const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${recipientId}/`);
+
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+
+    const newMessage = document.createElement('li');
+    newMessage.className = 'chat-message';
+
+    const profilePicUrl = data.profile_pic_url || "{% static 'images/default-avatar.png' %}";
+
+    newMessage.innerHTML = `
+      <img src="${profilePicUrl}" alt="${data.sender}">
+      <div class="message-body">
+        <div class="sender">${data.sender}</div>
+        <div>${data.message}</div>
+      </div>
+    `;
+
+    document.getElementById('chat-messages').appendChild(newMessage);
+    document.getElementById('chat-box').scrollTop = document.getElementById('chat-box').scrollHeight;
+  };
+
+  document.getElementById('chat-form').onsubmit = function(e) {
+    e.preventDefault();
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    if (message !== '') {
+      chatSocket.send(JSON.stringify({ 'message': message }));
+      input.value = '';
+    }
+  };
+</script>
+{% endblock %}

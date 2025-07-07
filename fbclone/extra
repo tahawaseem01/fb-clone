@@ -1,0 +1,441 @@
+{% comment %} <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'profile' %}">Facebook Clone</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'newsfeed' %}">NewsFeed</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'login' %}">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{% url 'register' %}">Register</a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav><br> {% endcomment %}
+
+
+
+
+
+
+<!-- {% extends 'base.html' %}
+{% comment %} {% load static %} {% endcomment %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile | FB Clone</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .profile-container {
+      margin-top: 20px;
+    }
+    .cover-photo img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 5px;
+    }
+    .profile-picture {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin-top: -60px;
+      border: 4px solid white;
+      object-fit: cover;
+    }
+    .profile-info {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .profile-controls button {
+      margin: 0 5px;
+    }
+    .connections {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 20px;
+    }
+    .posts {
+      margin-top: 20px;
+    }
+    .modal-box {
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+
+  <div class="container profile-container">
+    <div class="cover-photo">
+      <img src="cover-photo.jpg" alt="Cover Photo">
+    </div>
+    <div class="profile-info">
+      <img src="{{ user.profile.profile_pic.url }}" alt="Profile Picture" class="profile-picture">
+      <h1>{{ profile.user.username }}</h1>
+      <div class="profile-controls">
+        <button class="btn btn-primary">Edit Profile</button>
+        <button class="btn btn-secondary">Logout</button>
+      </div>
+      <p class="mt-3">This is the user's bio.</p>
+    </div>
+
+    <div class="connections">
+      <div class="followers">
+        <h5>Followers (123)</h5>
+      </div>
+      <div class="following">
+        <h5>Following (80)</h5>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-center">
+  <div class="col-md-6">
+    <div class="text-center mt-4 mb-3">
+      <h4 class="fw-bold">Your Posts</h4>
+    </div>
+
+     <div class="text-center">
+      <a href="{% url 'create_post' %}" class="btn btn-primary mt-3">Create New Post</a>
+    </div><br>
+
+    {% for post in posts %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-body">
+        <p class="mb-2">{{ post.content }}</p>
+
+        {% if post.image %}
+        <img src="{{ post.image.url }}" class="img-fluid rounded mb-3" alt="Post Image">
+        {% endif %}
+
+        {% if post.video %}
+        <div class="ratio ratio-16x9 mb-3">
+          <video controls>
+            <source src="{{ post.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        {% endif %}
+
+        <p>
+          ❤️ {{ post.like_set.count }} |
+          <a href="{% url 'like_post' post.id %}" class="text-decoration-none">Like</a>
+        </p>
+
+        <form method="post" action="{% url 'add_comment' post.id %}">
+          {% csrf_token %}
+          <input type="text" name="content" placeholder="Write a comment..." class="form-control" required>
+        </form>
+
+        <div class="mt-3">
+          <strong>Comments:</strong>
+          {% for comment in post.comment_set.all %}
+            <div class="border rounded p-2 my-1 bg-light">
+              <b>{{ comment.user.username }}:</b> {{ comment.content }}
+            </div>
+          {% empty %}
+            <p class="text-muted fst-italic">No comments yet.</p>
+          {% endfor %}
+        </div>
+
+        <small class="text-muted d-block mt-2">{{ post.created_at }}</small>
+      </div>
+    </div>
+    {% empty %}
+    <p class="text-center text-muted">No posts yet.</p>
+    {% endfor %}
+
+   
+  </div>
+</div>
+
+  </div>
+
+ 
+  <div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content modal-box">
+        <div class="modal-header">
+          <h5 class="modal-title">Followers</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul>
+            <li><a href="#">User1</a></li>
+            <li><a href="#">User2</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endblock  %}
+
+ -->
+
+
+
+
+ {% extends 'base.html' %}
+{% load static %}
+{% block title %}User Profile | FB Clone{% endblock %}
+{% block content %}
+
+<div class="container profile-container mt-5">
+  <div class="cover-photo">
+    <img src="{% static 'images/cover-photo.jpg' %}" alt="Cover Photo">
+  </div>
+
+  <div class="profile-info">
+    <img src="{{ user.profile.profile_pic.url }}" alt="Profile Picture" class="profile-picture">
+    <h1>{{ profile.user.username }}</h1>
+    <div class="profile-controls">
+      <button class="btn btn-primary">Edit Profile</button>
+      <button class="btn btn-secondary">Logout</button>
+    </div>
+    <p class="mt-3">This is the user's bio.</p>
+  </div>
+
+  <div class="connections">
+    <div class="followers">
+      <h5>Followers (123)</h5>
+    </div>
+    <div class="following">
+      <h5>Following (80)</h5>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center">
+    <div class="col-md-6">
+      <div class="text-center mt-4 mb-3">
+        <h4 class="fw-bold">Your Posts</h4>
+      </div>
+
+      <div class="text-center">
+        <a href="{% url 'create_post' %}" class="btn btn-primary mt-3">Create New Post</a>
+      </div><br>
+
+      {% for post in posts %}
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+          <p class="mb-2">{{ post.content }}</p>
+
+          {% if post.image %}
+          <img src="{{ post.image.url }}" class="img-fluid rounded mb-3" alt="Post Image">
+          {% endif %}
+
+          {% if post.video %}
+          <div class="ratio ratio-16x9 mb-3">
+            <video controls>
+              <source src="{{ post.video.url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          {% endif %}
+
+          <p>
+            ❤️ {{ post.like_set.count }} |
+            <a href="{% url 'like_post' post.id %}" class="text-decoration-none">Like</a>
+          </p>
+
+          <form method="post" action="{% url 'add_comment' post.id %}">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Write a comment..." class="form-control" required>
+          </form>
+
+          <div class="mt-3">
+            <strong>Comments:</strong>
+            {% for comment in post.comment_set.all %}
+              <div class="border rounded p-2 my-1 bg-light">
+                <b>{{ comment.user.username }}:</b> {{ comment.content }}
+              </div>
+            {% empty %}
+              <p class="text-muted fst-italic">No comments yet.</p>
+            {% endfor %}
+          </div>
+
+          <small class="text-muted d-block mt-2">{{ post.created_at }}</small>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-center text-muted">No posts yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content modal-box">
+      <div class="modal-header">
+        <h5 class="modal-title">Followers</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <ul>
+          <li><a href="#">User1</a></li>
+          <li><a href="#">User2</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+
+<!-- profile.html -->
+
+
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}User Profile | FB Clone{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto mt-6 space-y-6">
+
+<!-- Cover Photo Container -->
+<div class="relative">
+  <!-- Cover Image -->
+  <div class="h-60 w-full">
+    <img src="{{ user_profile.profile.cover_pic.url }}" alt="Cover Photo"
+         class="w-full h-full object-cover rounded-b-lg">
+  </div>
+
+  <!-- Profile Picture (absolute over cover) -->
+  <div class="absolute left-6 -bottom-16 z-10">
+    <img src="{{ user_profile.profile.profile_pic.url }}" alt="Profile Picture"
+         class="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg">
+  </div>
+</div>
+
+  <!-- Profile Info -->
+  <div class="pt-16 px-6">
+    <div class="flex justify-between items-center flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold">{{ user_profile.username }}</h1>
+        <div class="mt-4">
+          <h2 class="text-xl font-bold text-gray-800">Bio</h2>
+          {% if profile.bio %}
+            <p class="text-gray-700">{{ profile.bio|linebreaksbr }}</p>
+          {% else %}
+            <p class="text-gray-500 italic">No bio added yet.</p>
+          {% endif %}
+        </div>
+      </div>
+      
+      {% if user == user_profile %}
+      <div class="space-x-2 mt-4 sm:mt-0">
+  <!-- <a href="{% url 'edit_profile' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Edit Profile</a> -->
+        {% if is_own_profile %}
+          <a href="{% url 'edit_profile' %}" class="...">Edit Profile</a>
+          {% elif not is_friend %}
+            {% if friend_request_sent %}
+              <button class="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed" disabled>Friend Request Sent</button>
+            {% else %}
+              <form method="post" action="{% url 'send_friend_request' user_profile.id %}">
+                {% csrf_token %}
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Add Friend</button>
+              </form>
+          {% endif %}
+        {% endif %}
+
+        <a href="{% url 'logout' %}" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-gray-800">Logout</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+ 
+
+  
+  <!-- Friends Count -->
+<div class="flex gap-8 border-t border-gray-200 pt-4 px-6 text-sm text-gray-700">
+  <div>👥 <strong>Friends:</strong> {{ friends_count }}</div>
+</div>
+
+
+  <!-- Posts Section -->
+    <div class="flex justify-between items-center mb-4">
+{% if is_own_profile or is_friend %}
+  <h2 class="text-xl font-bold">
+    {% if user == user_profile %}Your Posts{% else %}Posts by {{ user_profile.username }}{% endif %}
+  </h2>
+  {% if user == user_profile %}
+    <a href="{% url 'create_post' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">+ New Post</a>
+  {% endif %}
+</div>
+
+
+     {% for post in posts %}
+  <div class="card mb-6">
+    <div class="flex items-center mb-3">
+      <img src="{% if post.user.profile.profile_pic %}{{ post.user.profile.profile_pic.url }}{% else %}{% static 'profile_pics/default.jpg' %}{% endif %}" class="w-10 h-10 rounded-full mr-3 object-cover">
+      <div>
+        <p class="font-semibold text-gray-800">{{ post.user.username }}</p>
+        <p class="text-xs text-gray-500">{{ post.created_at|date:"M d, Y H:i" }}</p>
+      </div>
+    </div>
+    <p class="text-gray-700 mb-3">{{ post.content }}</p>
+    {% if post.image %}
+    <img src="{{ post.image.url }}" class="w-full max-h-[400px] object-cover rounded mb-3">
+    {% endif %}
+    {% if post.video %}
+    <video class="w-full rounded mb-3" controls>
+      <source src="{{ post.video.url }}" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+    {% endif %}
+    <div class="flex justify-between text-sm text-gray-600 mt-2">
+      <div>
+        ❤️ {{ post.like_set.count }} Likes
+      </div>
+      <a href="{% url 'like_post' post.id %}" class="text-blue-500 hover:underline">Like</a>
+    </div>
+    <form method="post" action="{% url 'add_comment' post.id %}" class="mt-3">
+      {% csrf_token %}
+      <input type="text" name="content" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded"><br>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 mt-2 px-4 py-2 rounded-full font-semibold transition duration-200"> Post</button>
+    </form>
+    <div class="mt-2 text-sm text-gray-700">
+      {% for comment in post.comment_set.all %}
+        <p><b>{{ comment.user.username }}</b>: {{ comment.content }}</p>
+      {% empty %}
+        <p class="text-gray-400">No comments yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+    <p class="text-center text-gray-500">No posts yet. Create a post to get started.</p>
+  {% endfor %}
+</div>
+{% else %}
+  <p class="text-gray-500 italic text-center mt-4">Add {{ user_profile.username }} as a friend to see their posts.</p>
+{% endif %}
+
+{% endblock %}

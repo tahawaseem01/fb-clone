@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}User Profile | FB Clone{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto mt-6 space-y-6">
+
+  <!-- Cover Photo -->
+  <div class="relative">
+    <div class="h-60 w-full">
+      <img src="{{ user_profile.profile.cover_pic.url }}" alt="Cover Photo"
+           class="w-full h-full object-cover rounded-b-lg">
+    </div>
+    <div class="absolute left-6 -bottom-16 z-10">
+      <img src="{{ user_profile.profile.profile_pic.url }}" alt="Profile Picture"
+           class="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg">
+    </div>
+  </div>
+
+  <!-- Profile Info -->
+  <div class="pt-16 px-6">
+    <div class="flex justify-between items-center flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold">{{ user_profile.username }}</h1>
+        <div class="mt-4">
+          <h2 class="text-xl font-bold text-gray-800">Bio</h2>
+          {% if profile.bio %}
+            <p class="text-gray-700">{{ profile.bio|linebreaksbr }}</p>
+          {% else %}
+            <p class="text-gray-500 italic">No bio added yet.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="space-x-2 mt-4 sm:mt-0">
+        {% if is_own_profile %}
+          <a href="{% url 'edit_profile' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Edit Profile</a>
+          <a href="{% url 'logout' %}" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded text-gray-800">Logout</a>
+        {% elif not is_friend %}
+          {% if friend_request_sent %}
+            <button class="bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed" disabled>Friend Request Sent</button>
+          {% else %}
+            <form method="post" action="{% url 'send_friend_request' user_profile.id %}">
+              {% csrf_token %}
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Add Friend</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Friends Count -->
+  <div class="flex gap-8 border-t border-gray-200 pt-4 px-6 text-sm text-gray-700">
+    <div>👥 <strong>Friends:</strong> {{ friends_count }}</div>
+  </div>
+
+  <!-- Posts Section -->
+  {% if is_own_profile or is_friend %}
+    <div class="bg-white p-6 rounded-lg shadow-md mt-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">
+          {% if is_own_profile %}Your Posts{% else %}Posts by {{ user_profile.username }}{% endif %}
+        </h2>
+        {% if is_own_profile %}
+          <a href="{% url 'create_post' %}" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">+ New Post</a>
+        {% endif %}
+      </div>
+
+      {% for post in posts %}
+        <div class="card mb-6">
+          <div class="flex items-center mb-3">
+            <img src="{{ post.user.profile.profile_pic.url }}" class="w-10 h-10 rounded-full mr-3 object-cover">
+            <div>
+              <p class="font-semibold text-gray-800">{{ post.user.username }}</p>
+              <p class="text-xs text-gray-500">{{ post.created_at|date:"M d, Y H:i" }}</p>
+            </div>
+          </div>
+          <p class="text-gray-700 mb-3">{{ post.content }}</p>
+
+          {% if post.image %}
+            <img src="{{ post.image.url }}" class="w-full max-h-[400px] object-cover rounded mb-3">
+          {% endif %}
+
+          {% if post.video %}
+            <video class="w-full rounded mb-3" controls>
+              <source src="{{ post.video.url }}" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          {% endif %}
+
+          <div class="flex justify-between text-sm text-gray-600 mt-2">
+            <div>❤️ {{ post.like_set.count }} Likes</div>
+            <a href="{% url 'like_post' post.id %}" class="text-blue-500 hover:underline">Like</a>
+          </div>
+
+          <form method="post" action="{% url 'add_comment' post.id %}" class="mt-3">
+            {% csrf_token %}
+            <input type="text" name="content" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded mb-2">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-semibold">Post</button>
+          </form>
+
+          <div class="mt-2 text-sm text-gray-700">
+            {% for comment in post.comment_set.all %}
+              <p><b>{{ comment.user.username }}</b>: {{ comment.content }}</p>
+            {% empty %}
+              <p class="text-gray-400">No comments yet.</p>
+            {% endfor %}
+          </div>
+        </div>
+      {% empty %}
+        <p class="text-center text-gray-500">No posts yet.</p>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-gray-500 italic text-center mt-6">Add {{ user_profile.username }} as a friend to see their posts.</p>
+  {% endif %}
+</div>
+
+{% endblock %}

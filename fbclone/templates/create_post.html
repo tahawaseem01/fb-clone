@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create Post</title></head>
+<body>
+  <h2>Create Post</h2>
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Post</button>
+  </form>
+  <a href="{% url 'profile' %}">Back to Profile</a>
+</body>
+</html>

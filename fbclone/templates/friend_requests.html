@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Friend Requests{% endblock %}
+
+{% block content %}
+<h2 class="text-2xl font-bold text-blue-600 mb-4">Friend Requests</h2>
+
+{% if incoming_requests %}
+  <ul>
+    {% for req in incoming_requests %}
+      <li class="bg-white shadow p-4 rounded mb-2 flex justify-between items-center">
+        <div class="flex items-center space-x-4">
+          <!-- Profile Picture -->
+          {% if req.sender.profile.profile_pic %}
+            <img src="{{ req.sender.profile.profile_pic.url }}" alt="{{ req.sender.username }}" class="w-12 h-12 rounded-full object-cover">
+          {% else %}
+            <img src="{% static 'default-profile.png' %}" alt="Default" class="w-12 h-12 rounded-full object-cover">
+          {% endif %}
+          
+          <!-- Username -->
+          <span class="font-semibold text-gray-800">{{ req.sender.username }}</span>
+        </div>
+
+        <!-- Accept / Decline buttons -->
+        <div class="flex space-x-2">
+          <form method="post" action="{% url 'accept_request' req.id %}">
+            {% csrf_token %}
+            <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">Accept</button>
+          </form>
+          <form method="post" action="{% url 'decline_request' req.id %}">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Decline</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No pending requests.</p>
+{% endif %}
+{% endblock %}

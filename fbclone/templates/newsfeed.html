@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container mx-auto mt-6 px-4">
+  <div class="flex flex-col md:flex-row gap-6">
+
+    <!-- 👥 Friends List (Left Sidebar) -->
+    <div class="w-full md:w-1/4 space-y-6">
+      <div class="bg-white shadow-md rounded-lg p-4">
+        <h4 class="text-lg font-semibold mb-3 text-blue-600">Your Friends</h4>
+        {% for friend in friends %}
+          <div class="flex items-center mb-2">
+            <a href="{% url 'user_profile' friend.username %}" class="flex items-center space-x-2 hover:underline">
+              <img src="{{ friend.profile.profile_pic.url }}" alt="Friend Pic"
+                  class="w-10 h-10 rounded-full object-cover">
+              <p class="text-gray-800">{{ friend.username }}</p>
+            </a>
+          </div>
+        {% empty %}
+          <p class="text-gray-500">You have no friends yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+
+    <!-- 📰 Newsfeed (Center Column) -->
+    <div class="w-full md:w-2/4">
+      <h2 class="text-2xl font-bold text-center mb-6 text-blue-600">Newsfeed</h2>
+      {% for post in posts %}
+      <div class="card mb-6">
+        <!-- Post content same as your original -->
+        <div class="flex items-center mb-3">
+          <a href="{% url 'user_profile' post.user.username %}">
+            <img src="{% if post.user.profile.profile_pic %}{{ post.user.profile.profile_pic.url }}{% else %}{% static 'profile_pics/default.jpg' %}{% endif %}"
+                class="w-10 h-10 rounded-full mr-3 object-cover"
+                alt="{{ post.user.username }}'s profile picture">
+          </a>
+          <div>
+            <a href="{% url 'user_profile' post.user.username %}" class="hover:underline text-gray-800 font-semibold">
+              {{ post.user.username }}
+            </a>
+            <p class="text-xs text-gray-500">{{ post.created_at|date:"M d, Y H:i" }}</p>
+          </div>
+       </div>
+
+        <p class="text-gray-700 mb-3">{{ post.content }}</p>
+        {% if post.image %}
+        <img src="{{ post.image.url }}" class="w-full max-h-[400px] object-cover rounded mb-3">
+        {% endif %}
+        {% if post.video %}
+        <video class="w-full rounded mb-3" controls>
+          <source src="{{ post.video.url }}" type="video/mp4">
+        </video>
+        {% endif %}
+        <div class="flex justify-between text-sm text-gray-600 mt-2">
+          <div>❤️ {{ post.like_set.count }} Likes</div>
+          <a href="{% url 'like_post' post.id %}" class="text-blue-500 hover:underline">Like</a>
+        </div>
+        <form method="post" action="{% url 'add_comment' post.id %}" class="mt-3">
+          {% csrf_token %}
+          <input type="text" name="content" placeholder="Write a comment..." class="w-full p-2 border border-gray-300 rounded mb-2">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full font-semibold">Post</button>
+        </form>
+        <div class="mt-2 text-sm text-gray-700">
+          {% for comment in post.comment_set.all %}
+            <p><b>{{ comment.user.username }}</b>: {{ comment.content }}</p>
+          {% empty %}
+            <p class="text-gray-400">No comments yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+        <p class="text-center text-gray-500">No posts yet.</p>
+      {% endfor %}
+    </div>
+
+    <!-- 👤 Profile Info (Right Sidebar) -->
+    <div class="w-full md:w-1/4 space-y-6">
+      <div class="bg-white shadow-md rounded-lg p-4">
+        <div class="text-center">
+          <a href="{% url 'profile' %}">
+            <img src="{{ request.user.profile.profile_pic.url }}" alt="Profile Picture"
+               class="w-24 h-24 rounded-full mx-auto mb-2 object-cover border-4 border-blue-500 shadow">
+          </a>
+          <a href="{% url 'profile' %}">
+            <h3 class="text-lg font-semibold">{{ request.user.username }}</h3>
+          </a>
+          <p class="text-gray-500">Welcome back!</p>
+        </div>
+        <div class="mt-4 space-y-2 text-sm">
+          <a href="{% url 'profile' %}" class="block text-blue-600 hover:underline">View Profile</a>
+          <a href="{% url 'people_you_may_know' %}" class="block text-blue-600 hover:underline">People You May Know</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+  </div>
+</div>
+{% endblock %}

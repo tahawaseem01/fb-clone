@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+  <h2 class="text-xl font-bold mb-4">Notifications</h2>
+
+  {% for notification in notifications %}
+    <div class="mb-2 p-3 bg-white rounded shadow flex justify-between items-center">
+      <div class="flex items-center">
+        {% if notification.sender.profile.profile_pic %}
+          <img src="{{ notification.sender.profile.profile_pic.url }}" class="w-8 h-8 rounded-full mr-2">
+        {% else %}
+          <div class="w-8 h-8 bg-gray-300 rounded-full mr-2"></div>
+        {% endif %}
+
+        <div>
+          <strong>{{ notification.sender.username }}</strong> {{ notification.verb }}
+          {% if notification.url %}
+            {% if notification.verb == 'sent you a message' %}
+              — <a href="{% url 'mark_notification_as_read' notification.id %}" class="text-blue-500 underline">Open Chat</a>
+            {% else %}
+              — <a href="{% url 'mark_notification_as_read' notification.id %}" class="text-blue-500 hover:underline">View</a>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+
+      <span class="text-gray-500 text-sm ml-4">{{ notification.timestamp|naturaltime }}</span>
+    </div>
+  {% empty %}
+    <p class="text-gray-600">No new notifications.</p>
+  {% endfor %}
+{% endblock %}

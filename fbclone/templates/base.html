@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Facebook Clone{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<!-- Header -->
+<header class="bg-blue-600 shadow-sm py-4 px-6">
+  <div class="container mx-auto flex justify-between items-center">
+    <a href="{% url 'newsfeed' %}" class="text-xl font-bold text-white">FbClone</a>
+
+    {% if user.is_authenticated %}
+    <div class="flex items-center space-x-4">
+      <!-- Always Visible Buttons -->
+      <a href="{% url 'newsfeed' %}" class="{% if current_page == 'newsfeed' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Newsfeed</a>
+
+      <a href="{% url 'profile' %}" class="{% if current_page == 'profile' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Profile</a>
+
+      <a href="{% url 'people_you_may_know' %}" class="{% if current_page == 'suggestions' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Suggestions</a>
+
+      <a href="{% url 'notifications' %}" class="text-white hover:bg-white hover:text-blue-600 px-3 py-1 rounded transition">
+        Notifications
+        {% if unread_notifications_count > 0 %}
+          <span class="bg-red-600 text-white px-2 py-1 rounded-full text-xs">{{ unread_notifications_count }}</span>
+        {% endif %}
+      </a>
+
+    <!-- Search Bar -->
+<div class="relative">
+  <input 
+    type="text" 
+    id="user-search" 
+    placeholder="Search users..." 
+    class="px-3 py-1 border rounded w-64" 
+    autocomplete="off"
+    aria-haspopup="listbox"
+    aria-controls="search-results"
+    role="combobox"
+  >
+  <ul 
+    id="search-results" 
+    class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-50 hidden max-h-60 overflow-y-auto"
+    role="listbox"
+  ></ul>
+</div>
+
+
+
+      
+
+      <!-- Use group-hover and clicked toggle -->
+      <!-- Dropdown -->
+      <div class="relative group" id="menu-container">
+        <button id="menu-button" class="text-white px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">
+          ☰ Menu
+        </button>
+
+        <div id="menu-dropdown"
+            class="absolute right-0 z-10 hidden group-hover:block bg-white border border-gray-200 rounded shadow-md mt-2 w-48">
+          <a href="{% url 'view_friend_requests' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            Friend Requests 🙍🏻‍♂️
+            {% if pending_count > 0 %}
+              <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ml-1">{{ pending_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'friends_list_for_messaging' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            💬 Messages
+          </a>
+          <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Main Content -->
+<main class="flex-grow container mx-auto mt-6 px-4">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white text-center py-4 mt-8">
+  <p class="text-sm">&copy; 2025 FbClone. All rights reserved.</p>
+  <p class="text-xs">Built for educational/demo purposes only.</p>
+</footer>
+
+<style>
+  /* Keep menu open if clicked */
+  #menu-container.clicked #menu-dropdown {
+    display: block;
+  }
+</style>
+
+
+<script>
+  const menuButton = document.getElementById("menu-button");
+  const menuContainer = document.getElementById("menu-container");
+
+  let clicked = false;
+
+  menuButton.addEventListener("click", (e) => {
+    e.preventDefault(); // prevent page jump
+    clicked = !clicked;
+
+    if (clicked) {
+      menuContainer.classList.add("clicked");
+    } else {
+      menuContainer.classList.remove("clicked");
+    }
+  });
+
+  // Close menu if clicked outside
+  document.addEventListener("click", function(e) {
+    if (!menuContainer.contains(e.target)) {
+      clicked = false;
+      menuContainer.classList.remove("clicked");
+    }
+  });
+</script>
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const input = document.getElementById('user-search');
+  const resultsList = document.getElementById('search-results');
+  let debounceTimeout;
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceTimeout);
+    const query = input.value.trim();
+
+    debounceTimeout = setTimeout(() => {
+      if (query.length === 0) {
+        resultsList.innerHTML = '';
+        resultsList.classList.add('hidden');
+        return;
+      }
+
+      fetch(`/accounts/ajax/search-users/?q=${encodeURIComponent(query)}`)  // ✅ correct
+
+        .then(response => response.json())
+        .then(data => {
+          resultsList.innerHTML = '';
+
+          if (data.length > 0) {
+            data.forEach(user => {
+              const li = document.createElement('li');
+              li.className = "flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer";
+              li.innerHTML = `
+                <img src="${user.profile_pic}" alt="${user.username}" class="w-8 h-8 rounded-full mr-2">
+                <span>${user.username} (${user.full_name})</span>
+              `;
+              li.addEventListener('click', () => {
+                window.location.href = `/accounts/profile/${user.username}/`;
+
+              });
+              resultsList.appendChild(li);
+            });
+          } else {
+            const li = document.createElement('li');
+            li.className = "px-4 py-2 text-gray-500";
+            li.textContent = 'No user found.';
+            resultsList.appendChild(li);
+          }
+
+          resultsList.classList.remove('hidden');
+        });
+    }, 300); // debounce delay
+  });
+
+  // Hide search results on outside click
+  document.addEventListener('click', function (e) {
+    if (!input.contains(e.target) && !resultsList.contains(e.target)) {
+      resultsList.classList.add('hidden');
+    }
+  });
+});
+</script>
+
+
+
+
+
+</body>
+</html>

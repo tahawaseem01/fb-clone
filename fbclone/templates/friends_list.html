@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2 class="text-xl font-bold mb-4">Your Friends</h2>
+
+<ul>
+  {% for friend in friends %}
+    <li class="mb-2">
+      <a href="{% url 'message_user' friend.id %}" class="text-blue-500 hover:underline">
+        {{ friend.username }}
+      </a>
+    </li>
+  {% empty %}
+    <li>You have no friends to message.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

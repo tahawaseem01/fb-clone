@@ -1,0 +1,54 @@
+{% comment %} <!-- dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        h1 {
+            color: #333;
+        }
+        .suggestions {
+            margin-top: 20px;
+        }
+        .suggestion {
+            background: #eaeaea;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Your Dashboard</h1>
+
+        {% if suggestions %}
+            <div class="suggestions">
+                <h2>Friend Suggestions</h2>
+                {% for user in suggestions %}
+                    <div class="suggestion">
+                        <p><strong>{{ user.username }}</strong></p>
+                        <p>{{ user.email }}</p>
+                        <!-- You can add a follow button here -->
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No suggestions available.</p>
+        {% endif %}
+    </div>
+</body>
+</html> {% endcomment %}
