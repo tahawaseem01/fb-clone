@@ -1,17 +1,27 @@
 {% extends 'base.html' %}
-
 {% block content %}
-<h2 class="text-xl font-bold mb-4">Your Friends</h2>
 
-<ul>
-  {% for friend in friends %}
-    <li class="mb-2">
-      <a href="{% url 'message_user' friend.id %}" class="text-blue-500 hover:underline">
-        {{ friend.username }}
+<h2 class="text-xl font-bold mb-4">Your Inbox</h2>
+
+<ul class="space-y-4">
+  {% for item in inbox_data %}
+    <li class="bg-white p-4 shadow rounded flex justify-between items-center">
+      <a href="{% url 'message_user' item.friend.id %}" class="flex items-center space-x-3">
+        <img src="{{ item.friend.profile.profile_pic.url }}" class="w-10 h-10 rounded-full" alt="User">
+        <div>
+          <p class="font-semibold">{{ item.friend.username }}</p>
+          <p class="text-gray-600 text-sm">
+            {{ item.last_message.content|truncatechars:30 }}
+          </p>
+        </div>
       </a>
+      {% if item.unread_count > 0 %}
+        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full">{{ item.unread_count }}</span>
+      {% endif %}
     </li>
   {% empty %}
-    <li>You have no friends to message.</li>
+    <li>You have no messages yet.</li>
   {% endfor %}
 </ul>
+
 {% endblock %}

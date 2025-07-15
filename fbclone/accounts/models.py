@@ -96,6 +96,14 @@ class Notification(models.Model):
     url = models.URLField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    type = models.CharField(max_length=50, default='general')
+
+    type = models.CharField(max_length=20, choices=(
+        ('message', 'Message'),
+        ('friend_request', 'Friend Request'),
+        ('other', 'Other'),
+    ), default='other')
+
 
     def __str__(self):
         return f"{self.sender} {self.verb} {self.recipient}"

@@ -12,8 +12,6 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
-
-
 def register_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -41,6 +39,7 @@ def register_view(request):
         return redirect('login')
     return render(request, 'register.html')
 
+
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -53,10 +52,11 @@ def login_view(request):
         if user:
             login(request, user)
             print("🎉 Logged in:", user.username)
-            return redirect('newsfeed')  # Coming soon
+            return redirect('newsfeed')  
         else:
             return render(request, 'login.html', {'error': 'Invalid credentials'})
     return render(request, 'login.html')
+    
 
 
 def redirect_to_login(request):
@@ -169,6 +169,109 @@ def people_you_may_know(request):
     })
 
 
+# @login_required
+# def newsfeed(request):
+#     # Get all posts (you can filter by following if needed)
+#     # posts = Post.objects.all().order_by('-created_at')
+#     user = request.user
+#     friends = get_friends(request.user)
+#     posts = Post.objects.filter(user__in=list(friends) + [request.user]).order_by('-created_at')
+
+#     # Build list of friends with unread message counts
+#     friends_with_unread = []
+#     for friend in friends:
+#         unread_count = Message.objects.filter(sender=friend, recipient=user, is_read=False).count()
+#         friends_with_unread.append({
+#             'friend': friend,
+#             'unread_count': unread_count,
+#         })
+
+#     # Get message notification count
+#     message_notifications_count = Notification.objects.filter(
+#         recipient=user,
+#         is_read=False,
+#         type='message'
+#     ).count()
+
+
+#     # Get accepted friends
+#     sent_friends = FriendRequest.objects.filter(sender=request.user, status='accepted').values_list('receiver', flat=True)
+#     received_friends = FriendRequest.objects.filter(receiver=request.user, status='accepted').values_list('sender', flat=True)
+
+#     friend_ids = list(sent_friends) + list(received_friends)
+#     friends = User.objects.filter(id__in=friend_ids)
+
+#     message_notifications_count = Notification.objects.filter(
+#         recipient=request.user,
+#         is_read=False,
+#         type='message'
+#     ).count()
+
+#     pending_count = FriendRequest.objects.filter(receiver=request.user, status='pending').count()
+
+#     unread_notifications_count = Notification.objects.filter(
+#         recipient=request.user,
+#         is_read=False
+#     ).exclude(verb="sent you a message").count()
+
+#     return render(request, 'newsfeed.html', {
+#         'posts': posts,
+#         'friends': friends,
+#         'current_page': 'newsfeed',
+#         'message_notifications_count': message_notifications_count,
+#         'pending_count': pending_count,
+#         'unread_notifications_count': unread_notifications_count,
+#         'friends_with_unread': friends_with_unread,
+        
+#     })
+
+@login_required
+def newsfeed(request):
+    user = request.user
+    friends = get_friends(user)
+    posts = Post.objects.filter(user__in=list(friends) + [user]).order_by('-created_at')
+
+    # Build list of friends with unread message counts
+    friends_with_unread = []
+    for friend in friends:
+        unread_count = Message.objects.filter(sender=friend, recipient=user, is_read=False).count()
+        friends_with_unread.append({
+            'friend': friend,
+            'unread_count': unread_count,
+        })
+
+    # Get accepted friends separately for another use
+    sent_friends = FriendRequest.objects.filter(sender=user, status='accepted').values_list('receiver', flat=True)
+    received_friends = FriendRequest.objects.filter(receiver=user, status='accepted').values_list('sender', flat=True)
+    accepted_friends = User.objects.filter(id__in=list(sent_friends) + list(received_friends))
+
+    # Notifications
+    message_notifications_count = Notification.objects.filter(
+        recipient=user,
+        is_read=False,
+        type='message'
+    ).count()
+
+    unread_notifications_count = Notification.objects.filter(
+        recipient=user,
+        is_read=False
+    ).exclude(verb="sent you a message").count()
+
+    pending_count = FriendRequest.objects.filter(receiver=user, status='pending').count()
+
+    return render(request, 'newsfeed.html', {
+        'posts': posts,
+        'friends': accepted_friends,  # These can be used elsewhere
+        'friends_with_unread': friends_with_unread,  # For chat box
+        'current_page': 'newsfeed',
+        'message_notifications_count': message_notifications_count,
+        'pending_count': pending_count,
+        'unread_notifications_count': unread_notifications_count,
+    })
+
+
+
+
 @login_required
 def send_friend_request(request, user_id):
     receiver = User.objects.get(id=user_id)
@@ -216,11 +319,17 @@ def decline_friend_request(request, request_id):
 
 
 @login_required
+def view_friend_requests(request):
+    incoming_requests = FriendRequest.objects.filter(receiver=request.user, status='pending')
+    return render(request, 'friend_requests.html', {'incoming_requests': incoming_requests})
+
+
+@login_required
 def notifications_view(request):
     notifications = Notification.objects.filter(
         recipient=request.user,
         is_read=False
-    ).order_by('-timestamp')
+    ).order_by('-timestamp').exclude(type='message')
     print(f"🔔 Checking notifications for: {request.user}")
     print(Notification.objects.filter(recipient=request.user))
 
@@ -239,39 +348,59 @@ def mark_notification_as_read(request, notification_id):
 
 
 @login_required
-def newsfeed(request):
-    # Get all posts (you can filter by following if needed)
-    # posts = Post.objects.all().order_by('-created_at')
-    friends = get_friends(request.user)
-    posts = Post.objects.filter(user__in=list(friends) + [request.user]).order_by('-created_at')
-
-    # Get accepted friends
-    sent_friends = FriendRequest.objects.filter(sender=request.user, status='accepted').values_list('receiver', flat=True)
-    received_friends = FriendRequest.objects.filter(receiver=request.user, status='accepted').values_list('sender', flat=True)
-
-    friend_ids = list(sent_friends) + list(received_friends)
-    friends = User.objects.filter(id__in=friend_ids)
-
-    return render(request, 'newsfeed.html', {
-        'posts': posts,
-        'friends': friends,
-        'current_page': 'newsfeed',
-    })
-
-
-@login_required
-def view_friend_requests(request):
-    incoming_requests = FriendRequest.objects.filter(receiver=request.user, status='pending')
-    return render(request, 'friend_requests.html', {'incoming_requests': incoming_requests})
-
-
-@login_required
 def search_users(request):
     query = request.GET.get('q', '')
     results = []
     if query:
         results = User.objects.filter(Q(username__icontains=query)).exclude(id=request.user.id)
     return render(request, 'search_results.html', {'query': query, 'results': results})
+
+
+
+@login_required
+def ajax_search_users(request):
+    query = request.GET.get('q', '')
+    results = []
+
+    if query:
+        users = User.objects.filter(
+            Q(username__icontains=query) | 
+            Q(first_name__icontains=query) | 
+            Q(last_name__icontains=query)
+        ).exclude(id=request.user.id).distinct()[:10]
+
+        for user in users:
+            # Check if they are friends
+            is_friend = FriendRequest.objects.filter(
+                (
+                    Q(sender=request.user, receiver=user) |
+                    Q(sender=user, receiver=request.user)
+                ),
+                status='accepted'
+            ).exists()
+
+            # Check if a friend request was sent (but not accepted)
+            request_sent = FriendRequest.objects.filter(
+                sender=request.user,
+                receiver=user,
+                status='pending'
+            ).exists()
+
+            try:
+                profile_pic = user.profile.profile_pic.url
+            except:
+                profile_pic = '/media/default.jpg'
+
+            results.append({
+                'username': user.username,
+                'full_name': f"{user.first_name} {user.last_name}",
+                'profile_pic': profile_pic,
+                'is_friend': is_friend,
+                'request_sent': request_sent,
+            })
+
+    return JsonResponse(results, safe=False)
+
 
 
 def base(request):
@@ -299,10 +428,19 @@ def message_user(request, user_id):
                 recipient=recipient,
                 sender=request.user,
                 verb="sent you a message",
-                url=reverse('message_user', args=[request.user.id])
+                url=reverse('message_user', args=[recipient.id]),
+                type='message'
             )
 
             return redirect('message_user', user_id=recipient.id)
+    Message.objects.filter(sender=recipient, recipient=request.user, is_read=False).update(is_read=True)
+
+    Notification.objects.filter(
+        sender=recipient,
+        recipient=request.user,
+        type='message',
+        is_read=False
+    ).update(is_read=True)
 
     messages = Message.objects.filter(
         Q(sender=request.user, recipient=recipient) |
@@ -317,34 +455,32 @@ def message_user(request, user_id):
 
 @login_required
 def friends_list_for_messaging(request):
-    # This will show all your friends — placeholder for now
-    friends = get_friends(request.user) 
-    return render(request, 'friends_list.html',{'friends': friends})
+    user = request.user
+    friends = get_friends(user)
 
+    inbox_data = []
+    for friend in friends:
+        last_message = Message.objects.filter(
+            Q(sender=user, recipient=friend) | Q(sender=friend, recipient=user)
+        ).order_by('-timestamp').first()
 
-@login_required
-def ajax_search_users(request):
-    query = request.GET.get('q', '')
-    results = []
+        unread_count = Message.objects.filter(
+            sender=friend,
+            recipient=user,
+            is_read=False
+        ).count()
 
-    if query:
-        users = User.objects.filter(
-            Q(username__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query)
-        ).exclude(id=request.user.id).distinct()[:5]
+        inbox_data.append({
+            'friend': friend,
+            'last_message': last_message,
+            'unread_count': unread_count
+        })
 
-        for user in users:
-            try:
-                profile_pic = user.profile.profile_pic.url  # Assumes profile has image field `profile_pic`
-            except:
-                profile_pic = '/media/default.jpg'  # fallback if no profile or picture
+    return render(request, 'friends_list.html', {
+        'inbox_data': inbox_data,
+        'friends': friends
+    })
 
-            results.append({
-                'username': user.username,
-                'full_name': f"{user.first_name} {user.last_name}",
-                'profile_pic': profile_pic
-            })
-
-    return JsonResponse(results, safe=False)
 
 
 @login_required
@@ -379,3 +515,5 @@ def user_profile_view(request, username):
     }
 
     return render(request, 'profile.html', context)
+
+

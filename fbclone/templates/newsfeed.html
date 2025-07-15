@@ -93,6 +93,9 @@
         </div>
       </div>
     </div>
+    
+
+
 
   </div>
 </div>
@@ -100,4 +103,57 @@
 
   </div>
 </div>
+
+
+<!-- Floating Chat Icon -->
+<div id="chat-toggle" class="fixed bottom-4 right-4 bg-blue-600 text-white p-3 rounded-full shadow-lg cursor-pointer z-50">
+  💬
+  {% if message_notifications_count > 0 %}
+    <span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-xs ml-1">
+      {{ message_notifications_count }}
+    </span>
+  {% endif %}
+</div>
+
+<!-- Chat Box Container -->
+<div id="chat-box" class="hidden fixed bottom-20 right-4 bg-white border rounded-lg shadow-lg w-80 max-h-[400px] flex flex-col z-50">
+  <div class="bg-blue-600 text-white p-2 flex justify-between items-center">
+    <span>Messenger</span>
+    <button id="close-chat" class="text-white font-bold">×</button>
+  </div>
+  <div class="overflow-y-auto p-2 flex-grow" id="chat-list">
+    {% if friends_with_unread %}
+      {% for item in friends_with_unread %}
+        <div class="cursor-pointer p-2 border-b hover:bg-gray-100"
+             onclick="openChat({{ item.friend.id }}, '{{ item.friend.username|escapejs }}')">
+          {{ item.friend.username }}
+          {% if item.unread_count > 0 %}
+            <span class="bg-red-600 text-white text-xs rounded-full px-2 ml-2">
+              {{ item.unread_count }}
+            </span>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-gray-500 p-2">No friends to chat with.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.getElementById('chat-toggle').addEventListener('click', () => {
+    document.getElementById('chat-box').classList.toggle('hidden');
+  });
+
+  document.getElementById('close-chat').addEventListener('click', () => {
+    document.getElementById('chat-box').classList.add('hidden');
+  });
+
+  function openChat(userId, username) {
+    const url = "{% url 'message_user' 0 %}".replace('0', userId);
+    window.location.href = url;
+  }
+</script>
+
+
 {% endblock %}

@@ -84,7 +84,8 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'accounts.context_processors.unread_notifications_count',
+                # 'accounts.context_processors.unread_notifications_count',
+                'accounts.context_processors.notification_counts',
                 'django.contrib.messages.context_processors.messages',
             ],
         },

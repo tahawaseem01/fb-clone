@@ -1,10 +1,16 @@
-from .models import Notification
+from .models import Notification, Message
 
-def unread_notifications_count(request):
+def notification_counts(request):
     if request.user.is_authenticated:
-        count = Notification.objects.filter(recipient=request.user, is_read=False).count()
-    else:
-        count = 0
-    return {
-        'unread_notifications_count': count
-    }
+        return {
+            'unread_notifications_count': Notification.objects.filter(
+                recipient=request.user,
+                is_read=False
+            ).exclude(type='message').count(),
+
+            'message_notifications_count': Message.objects.filter(
+                recipient=request.user,
+                is_read=False,
+            ).count()
+        }
+    return {}

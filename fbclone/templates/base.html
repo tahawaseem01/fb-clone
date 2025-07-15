@@ -17,7 +17,7 @@
 
     {% if user.is_authenticated %}
     <div class="flex items-center space-x-4">
-      <!-- Always Visible Buttons -->
+      <!-- Navigation Links -->
       <a href="{% url 'newsfeed' %}" class="{% if current_page == 'newsfeed' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Newsfeed</a>
 
       <a href="{% url 'profile' %}" class="{% if current_page == 'profile' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Profile</a>
@@ -31,31 +31,26 @@
         {% endif %}
       </a>
 
-    <!-- Search Bar -->
-<div class="relative">
-  <input 
-    type="text" 
-    id="user-search" 
-    placeholder="Search users..." 
-    class="px-3 py-1 border rounded w-64" 
-    autocomplete="off"
-    aria-haspopup="listbox"
-    aria-controls="search-results"
-    role="combobox"
-  >
-  <ul 
-    id="search-results" 
-    class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-50 hidden max-h-60 overflow-y-auto"
-    role="listbox"
-  ></ul>
-</div>
+      <!-- Search Bar -->
+      <div class="relative">
+        <input 
+          type="text" 
+          id="user-search" 
+          placeholder="Search users..." 
+          class="px-3 py-1 border rounded w-64" 
+          autocomplete="off"
+          aria-haspopup="listbox"
+          aria-controls="search-results"
+          role="combobox"
+        >
+        <ul 
+          id="search-results" 
+          class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-50 hidden max-h-60 overflow-y-auto"
+          role="listbox"
+        ></ul>
+      </div>
 
-
-
-      
-
-      <!-- Use group-hover and clicked toggle -->
-      <!-- Dropdown -->
+      <!-- Dropdown Menu -->
       <div class="relative group" id="menu-container">
         <button id="menu-button" class="text-white px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">
           ☰ Menu
@@ -69,19 +64,24 @@
               <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ml-1">{{ pending_count }}</span>
             {% endif %}
           </a>
+          
           <a href="{% url 'friends_list_for_messaging' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
             💬 Messages
+            {% if message_notifications_count > 0 %}
+              <span class="bg-red-600 text-white px-2 py-0.5 rounded-full text-xs ml-1">{{ message_notifications_count }}</span>
+            {% endif %}
           </a>
+
           <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
             Logout
           </a>
         </div>
       </div>
     </div>
-  </div>
     {% endif %}
   </div>
 </header>
+
 
 <!-- Main Content -->
 <main class="flex-grow container mx-auto mt-6 px-4">
@@ -157,10 +157,22 @@ document.addEventListener('DOMContentLoaded', function () {
             data.forEach(user => {
               const li = document.createElement('li');
               li.className = "flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer";
+              // li.innerHTML = `
+              //   <img src="${user.profile_pic}" alt="${user.username}" class="w-8 h-8 rounded-full mr-2">
+              //   <span>${user.username} (${user.full_name})</span>
+              // `;
+              let label = '';
+              if (user.is_friend) {
+                label = '<span class="text-green-600 ml-2">(Friend)</span>';
+              } else if (user.request_sent) {
+                label = '<span class="text-yellow-600 ml-2">(Request Sent)</span>';
+             }
+
               li.innerHTML = `
                 <img src="${user.profile_pic}" alt="${user.username}" class="w-8 h-8 rounded-full mr-2">
-                <span>${user.username} (${user.full_name})</span>
+                <span>${user.username} (${user.full_name}) ${label}</span>
               `;
+
               li.addEventListener('click', () => {
                 window.location.href = `/accounts/profile/${user.username}/`;
 

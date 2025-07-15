@@ -439,3 +439,78 @@
 {% endif %}
 
 {% endblock %}
+
+
+
+
+<header class="bg-blue-600 shadow-sm py-4 px-6">
+  <div class="container mx-auto flex justify-between items-center">
+    <a href="{% url 'newsfeed' %}" class="text-xl font-bold text-white">FbClone</a>
+
+    {% if user.is_authenticated %}
+    <div class="flex items-center space-x-4">
+      <!-- Always Visible Buttons -->
+      <a href="{% url 'newsfeed' %}" class="{% if current_page == 'newsfeed' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Newsfeed</a>
+
+      <a href="{% url 'profile' %}" class="{% if current_page == 'profile' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Profile</a>
+
+      <a href="{% url 'people_you_may_know' %}" class="{% if current_page == 'suggestions' %}bg-white text-blue-600{% else %}text-white{% endif %} px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">Suggestions</a>
+
+      <a href="{% url 'notifications' %}" class="text-white hover:bg-white hover:text-blue-600 px-3 py-1 rounded transition">
+        Notifications
+        {% if unread_notifications_count > 0 %}
+          <span class="bg-red-600 text-white px-2 py-1 rounded-full text-xs">{{ unread_notifications_count }}</span>
+        {% endif %}
+      </a>
+
+    <!-- Search Bar -->
+<div class="relative">
+  <input 
+    type="text" 
+    id="user-search" 
+    placeholder="Search users..." 
+    class="px-3 py-1 border rounded w-64" 
+    autocomplete="off"
+    aria-haspopup="listbox"
+    aria-controls="search-results"
+    role="combobox"
+  >
+  <ul 
+    id="search-results" 
+    class="absolute left-0 mt-1 w-full bg-white border rounded shadow-lg z-50 hidden max-h-60 overflow-y-auto"
+    role="listbox"
+  ></ul>
+</div>
+
+
+
+      
+
+      <!-- Use group-hover and clicked toggle -->
+      <!-- Dropdown -->
+      <div class="relative group" id="menu-container">
+        <button id="menu-button" class="text-white px-3 py-1 rounded hover:bg-white hover:text-blue-600 transition">
+          ☰ Menu
+        </button>
+
+        <div id="menu-dropdown"
+            class="absolute right-0 z-10 hidden group-hover:block bg-white border border-gray-200 rounded shadow-md mt-2 w-48">
+          <a href="{% url 'view_friend_requests' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            Friend Requests 🙍🏻‍♂️
+            {% if pending_count > 0 %}
+              <span class="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs ml-1">{{ pending_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'friends_list_for_messaging' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            💬 Messages
+          </a>
+          <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+    {% endif %}
+  </div>
+</header>

@@ -65,7 +65,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 recipient=recipient,
                 sender=sender,
                 verb="sent you a message",
-                url=reverse('message_user', args=[sender.id])
+                url=reverse('message_user', args=[sender.id]),
+                type='message'  
            ) 
         except Exception as e:
             print(f"❌ Failed to create notification: {e}")
