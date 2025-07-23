@@ -14,10 +14,11 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 import accounts.routing
 import django
-django.setup()
+
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'fbclone.settings')
+django.setup()
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
